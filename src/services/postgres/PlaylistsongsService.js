@@ -22,10 +22,10 @@ class PlaylistsongsService {
     }
     return result.rows[0].id;
   }
-  async getPlaylistsongs(songId) {
+  async getPlaylistsongs(playlistId) {
     const query = {
-      text: 'SELECT songs.id, songs.title, songs.performer FROM playlists INNER JOIN playlistsongs ON playlists.id = playlistsongs.playlist_id INNER JOIN songs ON playlistsong.song_id = songs.id WHERE playlistsongs.song_id = $1',
-      values: [songId],
+      text: 'SELECT songs.id, songs.title, songs.performer FROM playlistsongs JOIN songs ON songs.id = playlistsongs.song_id WHERE playlistsongs.playlist_id = $1 GROUP BY playlistsongs.song_id, songs.id',
+      values: [playlistId],
     };
     const result = await this._pool.query(query);
     return result.rows;
