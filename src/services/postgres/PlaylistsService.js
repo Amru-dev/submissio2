@@ -4,9 +4,8 @@ const AuthorizationError = require('../../exceptions/AuthorizationError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistsService {
-  constructor(playlistsongsService, collaborationService) {
+  constructor(collaborationService) {
     this._pool = new Pool();
-    this._playlistsongsService = playlistsongsService;
     this._collaborationService = collaborationService;
   }
   async addPlaylist({
@@ -81,6 +80,7 @@ class PlaylistsService {
       throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
     }
   }
+  // eslint-disable-next-line no-dupe-class-members
   async verifyPlaylistAccess(playlistId, userId) {
     try {
       await this.verifyPlaylistOwner(playlistId, userId);
@@ -89,22 +89,7 @@ class PlaylistsService {
         throw error;
       }
       try {
-        await this._playlistsongsService.verifyPlaylistsongs(playlistId, songId);
-      } catch {
-        throw error;
-      }
-    }
-  }
-  // eslint-disable-next-line no-dupe-class-members
-  async verifyPlaylistAccessColl(playlistId, userId) {
-    try {
-      await this.verifyPlaylistOwner(playlistId, userId);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      try {
-        await this._collaborationService.verifyCollaborator(playlistd, userId);
+        await this._collaborationService.verifyCollaborator(playlistId, userId);
       } catch {
         throw error;
       }
