@@ -59,7 +59,7 @@ class PlaylistsongsHandler {
       if (any !== 'songs') {
         throw new NotFoundError('Resource not found');
       }
-      await this._playlistsService.verifyPlaylistOwner(playlistId, userId);
+      await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
       const songs = await this._playlistsongsService.getPlaylistsongs(playlistId);
       console.log(songs);
       return {
@@ -98,7 +98,7 @@ class PlaylistsongsHandler {
       }
       this._validator.validatePlaylistsongPayload(request.payload);
       const { songId } = request.payload;
-      await this._playlistsService.verifyPlaylistOwner(playlistId, userId);
+      await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
       await this._playlistsongsService.deletePlaylistsongs(playlistId, songId);
  
       return {
