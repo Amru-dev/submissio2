@@ -6,12 +6,12 @@ class CollaborationsService {
   constructor() {
     this._pool = new Pool();
   }
-  async addCollaboration(songId, userId) {
+  async addCollaboration(playlistId, userId) {
     const id = `collab-${nanoid(16)}`;
  
     const query = {
       text: 'INSERT INTO collaborations VALUES($1, $2, $3) RETURNING id',
-      values: [id, songId, userId],
+      values: [id, playlistId, userId],
     };
  
     const result = await this._pool.query(query);
@@ -22,10 +22,10 @@ class CollaborationsService {
     return result.rows[0].id;
   }
 
-  async deleteCollaboration(songId, userId) {
+  async deleteCollaboration(playlistId, userId) {
     const query = {
-      text: 'DELETE FROM collaborations WHERE song_id = $1 AND user_id = $2 RETURNING id',
-      values: [songId, userId],
+      text: 'DELETE FROM collaborations WHERE playlist_id = $1 AND user_id = $2 RETURNING id',
+      values: [playlistId, userId],
     };
  
     const result = await this._pool.query(query);
@@ -34,10 +34,10 @@ class CollaborationsService {
       throw new InvariantError('Kolaborasi gagal dihapus');
     }
   }
-  async verifyCollaborator(songId, userId) {
+  async verifyCollaborator(playlistId, userId) {
     const query = {
-      text: 'SELECT * FROM collaborations WHERE song_id = $1 AND user_id = $2',
-      values: [songId, userId],
+      text: 'SELECT * FROM collaborations WHERE playlist_id = $1 AND user_id = $2',
+      values: [playlistId, userId],
     };
  
     const result = await this._pool.query(query);

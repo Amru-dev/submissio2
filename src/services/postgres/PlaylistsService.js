@@ -4,9 +4,10 @@ const AuthorizationError = require('../../exceptions/AuthorizationError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistsService {
-  constructor(playlistsongsService) {
+  constructor(playlistsongsService, collaborationService) {
     this._pool = new Pool();
     this._playlistsongsService = playlistsongsService;
+    this._collaborationService = collaborationService;
   }
   async addPlaylist({
     name, owner,
@@ -88,7 +89,22 @@ class PlaylistsService {
         throw error;
       }
       try {
-        await this._playlistsongsService.verifyPlaylistsongs(playlistId, userId);
+        await this._playlistsongsService.verifyPlaylistsongs(playlistId, songId);
+      } catch {
+        throw error;
+      }
+    }
+  }
+  // eslint-disable-next-line no-dupe-class-members
+  async verifyPlaylistAccessColl(playlistId, userId) {
+    try {
+      await this.verifyPlaylistOwner(playlistId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationService.verifyCollaborator(playlistd, userId);
       } catch {
         throw error;
       }
