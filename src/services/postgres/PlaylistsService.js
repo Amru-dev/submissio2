@@ -4,9 +4,10 @@ const AuthorizationError = require('../../exceptions/AuthorizationError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistsService {
-  constructor(collaborationService) {
+  constructor(collaborationService, cacheService) {
     this._pool = new Pool();
     this._collaborationService = collaborationService;
+    this._cacheService = cacheService;
   }
   async addPlaylist({
     name, owner,
@@ -23,19 +24,27 @@ class PlaylistsService {
     if (!result.rows[0].id) {
       throw new InvariantError('Playlist gagal ditambahkan');
     }
-
+    await this._cacheService.delete(`playlists:${owner}`);
     return result.rows[0].id;
   }
   async getPlaylists(owner) {
-    const query = {
-      text: `SELECT playlists.id,playlists.name,users.username FROM playlists
+    try {
+      // mendapatkan catatan dari cache
+      const result = await this._cacheService.get(`playlists:${owner}`);
+      return JSON.parse(result);
+    } catch (error) {
+      const query = {
+        text: `SELECT playlists.id,playlists.name,users.username FROM playlists
       JOIN users on playlists.owner=users.id
       LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
       WHERE playlists.owner = $1 OR collaborations.user_id = $1`,
-      values: [owner],
-    };
-    const result = await this._pool.query(query);
-    return result.rows;
+        values: [owner],
+      };
+      const result = await this._pool.query(query);
+      const mappedResult = result.rows;
+      await this._cacheService.set(`notes:${owner}`, JSON.stringify(mappedResult));
+      return mappedResult;
+    }
   }
   async getPlaylistById(id) {
     const query = {
@@ -61,6 +70,8 @@ class PlaylistsService {
     if (!result.rows.length) {
       throw new NotFoundError('Playlist gagal dihapus. Id tidak ditemukan');
     }
+    const { owner } = result.rows[0];
+    await this._cacheService.delete(`playlists:${owner}`);
   }
   async verifyPlaylistOwner(id, owner) {
     const query = {
