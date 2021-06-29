@@ -41,9 +41,8 @@ class PlaylistsService {
         values: [owner],
       };
       const result = await this._pool.query(query);
-      const mappedResult = result.rows;
-      await this._cacheService.set(`notes:${owner}`, JSON.stringify(mappedResult));
-      return mappedResult;
+      await this._cacheService.set(`playlists:${owner}`, JSON.stringify(result.rows));
+      return result.rows;
     }
   }
   async getPlaylistById(id) {
